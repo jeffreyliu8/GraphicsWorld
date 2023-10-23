@@ -15,7 +15,6 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.ShaderBrush
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.tooling.preview.Preview
 import com.jliu.graphicsworld.ui.theme.GraphicsWorldTheme
@@ -58,8 +57,13 @@ half4 main(float2 fragCoord) {
     }
 
     float d = length(uv);
+    
+    d = sin(d * 8. + iTime)/8.;
+    d = abs(d);
+    
+    d = smoothstep(0,0.1,d);
 
-    vec4 fragColor = vec4(d, 0, 0, 1);
+    vec4 fragColor = vec4(d, d, d, 1);
     return fragColor;
 }
 """.trimIndent()
@@ -88,11 +92,9 @@ fun ShaderBrushView(
                     size.height.toFloat()
                 )
             }
-            .graphicsLayer {
-                shader.setFloatUniform("iTime", time)
-            }
             .drawWithCache {
                 val shaderBrush = ShaderBrush(shader)
+                shader.setFloatUniform("iTime", time)
                 onDrawBehind {
                     drawRect(shaderBrush)
                 }
