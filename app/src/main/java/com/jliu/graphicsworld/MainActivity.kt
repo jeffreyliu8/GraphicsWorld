@@ -37,18 +37,27 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+//https://www.youtube.com/watch?v=f4s1h2YETNY&list=LL&index=4&t=160s&ab_channel=kishimisu
 @Language("AGSL")
 val SHADER_CODE = """
-    uniform float2 iResolution;
-    uniform float iTime;
-    uniform shader contents;
+uniform float2 iResolution;
+uniform float iTime;
 
+//https://iquilezles.org/articles/palettes/
+vec3 palette(float t) {
+    vec3 a = vec3(0.5, 0.5, 0.5);
+    vec3 b = vec3(0.5, 0.5, 0.5);
+    vec3 c = vec3(1.0, 1.0, 1.0);
+    vec3 d = vec3(0.263, 0.416, 0.557);
+
+    return a + b * cos(6.28318 * (c * t + d));
+}
 
 half4 main(float2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
     uv = uv * vec2(1.0, -1.0) + vec2(0.0, 1.0); // flip upside down for origin at bottom left
     uv = (uv - 0.5) * 2.0; // make center (0,0), and top right (1,1), bottom left (-1,-1)
-    
+
     // handle rotation scaling issue, always in center
     if (iResolution.x > iResolution.y) {
         uv.x *= iResolution.x / iResolution.y;
@@ -56,14 +65,25 @@ half4 main(float2 fragCoord) {
         uv.y *= iResolution.y / iResolution.x;
     }
 
-    float d = length(uv);
-    
-    d = sin(d * 8. + iTime)/8.;
-    d = abs(d);
-    
-    d = smoothstep(0,0.1,d);
+    vec2 uv0 = uv;
+    vec3 finalColor = vec3(0.0);
 
-    vec4 fragColor = vec4(d, d, d, 1);
+    for (float i = 0.0; i < 4.0; i++) {
+        uv = fract(uv * 1.5) - 0.5;
+
+        float d = length(uv) * exp(-length(uv0));
+
+        vec3 col = palette(length(uv0) + i * .4 + iTime * .4);
+
+        d = sin(d * 8. + iTime) / 8.;
+        d = abs(d);
+
+        d = pow(0.01 / d, 1.2);
+
+        finalColor += col * d;
+    }
+
+    half4 fragColor = vec4(finalColor, 1.0);
     return fragColor;
 }
 """.trimIndent()
