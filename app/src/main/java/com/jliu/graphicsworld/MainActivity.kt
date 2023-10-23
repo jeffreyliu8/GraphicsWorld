@@ -47,7 +47,10 @@ val SHADER_CODE = """
 
 half4 main(float2 fragCoord) {
     vec2 uv = fragCoord / iResolution.xy;
-    vec4 fragColor = vec4(uv.x,0,0,1);
+    uv = uv * vec2(1.0, -1.0) + vec2(0.0, 1.0); // flip upside down for origin at bottom left
+    uv = (uv - 0.5)* 2.0; // make center (0,0), and top right ( 1,1), bottom left (-1,-1)
+    
+    vec4 fragColor = vec4(uv,0,1);
     return fragColor;
 }
 """.trimIndent()
